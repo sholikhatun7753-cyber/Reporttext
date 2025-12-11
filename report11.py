@@ -2,7 +2,38 @@ import streamlit as st
 
 st.set_page_config(page_title="Quiz Report Text", layout="centered")
 
-# --- DATA SOAL ---
+# ======== CUSTOM STYLE (WARNA MENARIK) ==========
+page_bg = """
+<style>
+    body {
+        background: linear-gradient(135deg, #8EC5FC 0%, #E0C3FC 100%) !important;
+    }
+    .quiz-box {
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0px 4px 18px rgba(0,0,0,0.15);
+        margin-top: 20px;
+    }
+    .stButton>button {
+        background-color: #6C5CE7;
+        color: white;
+        border-radius: 10px;
+        padding: 10px 20px;
+        font-size: 16px;
+        border: none;
+        transition: 0.3s;
+    }
+    .stButton>button:hover {
+        background-color: #4B4AE1;
+        transform: scale(1.05);
+        cursor: pointer;
+    }
+</style>
+"""
+st.markdown(page_bg, unsafe_allow_html=True)
+
+# ======== DATA SOAL ==========
 questions = [
     {
         "question": "1. What is the main idea of the second paragraph?",
@@ -33,17 +64,47 @@ questions = [
             "D. vegetables, scrambled eggs, shredded chicken"
         ],
         "answer": "D"
+    },
+    {
+        "question": "4. What is the purpose of the text?",
+        "options": [
+            "A. to describe about fried rice",
+            "B. to describe about my breakfast menu",
+            "C. to describe my favourite menu",
+            "D. to describe about food"
+        ],
+        "answer": "A"
+    },
+    {
+        "question": "5. What topping can be added on fried rice?",
+        "options": [
+            "A. fries",
+            "B. coco chip",
+            "C. butter",
+            "D. vegetables, scrambled eggs, shredded chicken"
+        ],
+        "answer": "D"
     }
 ]
 
-# --- STATE: Menyimpan slide & jawaban user ---
+# ======== STATE ==========
 if "slide" not in st.session_state:
-    st.session_state.slide = 0
+    st.session_state.slide = -1   # mulai dari form identitas
 
 if "answers" not in st.session_state:
     st.session_state.answers = [""] * len(questions)
 
-# --- FUNGSIONALITAS SLIDE ---
+if "nama" not in st.session_state:
+    st.session_state.nama = ""
+
+if "kelas" not in st.session_state:
+    st.session_state.kelas = ""
+
+# ======== FUNGSI ==========
+def start_quiz():
+    if st.session_state.nama and st.session_state.kelas:
+        st.session_state.slide = 0
+
 def next_slide():
     if st.session_state.slide < len(questions) - 1:
         st.session_state.slide += 1
@@ -53,57 +114,77 @@ def previous_slide():
         st.session_state.slide -= 1
 
 def restart_quiz():
-    st.session_state.slide = 0
+    st.session_state.slide = -1
     st.session_state.answers = [""] * len(questions)
+    st.session_state.nama = ""
+    st.session_state.kelas = ""
 
-# --- SLIDE TERAKHIR: TAMPILKAN HASIL ---
+# ======== FORM IDENTITAS SISWA ==========
+if st.session_state.slide == -1:
+    st.markdown("<div class='quiz-box'>", unsafe_allow_html=True)
+    st.title("📝 Identitas Siswa")
+
+    st.session_state.nama = st.text_input("Nama Lengkap")
+    st.session_state.kelas = st.text_input("Kelas")
+
+    if st.button("Mulai Quiz ▶", on_click=start_quiz):
+        pass
+
+    st.markdown("</div>", unsafe_allow_html=True)
+    st.stop()
+
+# ======== SLIDE HASIL ==========
 if st.session_state.slide == len(questions):
+    st.markdown("<div class='quiz-box'>", unsafe_allow_html=True)
     st.title("🎉 Quiz Completed!")
-    st.subheader("Your Score")
+    st.subheader("Hasil Quiz")
 
     score = 0
     for i, q in enumerate(questions):
         if st.session_state.answers[i] == q["answer"]:
             score += 100 // len(questions)
 
-    st.write(f"### ⭐ Your score: **{score} / 100**")
+    st.write(f"### Nama: **{st.session_state.nama}**")
+    st.write(f"### Kelas: **{st.session_state.kelas}**")
+    st.write(f"### ⭐ Skor kamu: **{score} / 100**")
 
     st.write("---")
-    st.subheader("Answer Key")
+    st.subheader("Kunci Jawaban")
     for i, q in enumerate(questions):
-        st.write(f"**Question {i+1}:** Correct answer = {q['answer']} | Your answer = {st.session_state.answers[i]}")
+        st.write(f"**Soal {i+1}:** Kunci = {q['answer']} | Jawabanmu = {st.session_state.answers[i]}")
 
-    st.button("🔄 Restart Quiz", on_click=restart_quiz)
-
+    st.button("🔄 Mulai Lagi", on_click=restart_quiz)
+    st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
 
-# --- TAMPILKAN SLIDE SOAL ---
+# ======== TAMPILAN SLIDE SOAL ==========
 q = questions[st.session_state.slide]
 
-st.title("📚 Report Text Quiz (Slideshow Mode)")
-st.write(f"### Slide {st.session_state.slide + 1} of {len(questions)}")
-
+st.markdown("<div class='quiz-box'>", unsafe_allow_html=True)
+st.title("📚 Report Text Quiz")
+st.write(f"### Slide {st.session_state.slide + 1} dari {len(questions)}")
 st.write(f"**{q['question']}**")
 
-selected = st.radio(
-    "Choose your answer:",
+selected_option = st.radio(
+    "Pilih jawaban:",
     options=["A", "B", "C", "D"],
-    index=["A", "B", "C", "D"].index(st.session_state.answers[st.session_state.slide]) if st.session_state.answers[st.session_state.slide] else 0,
+    index=["A", "B", "C", "D"].index(st.session_state.answers[st.session_state.slide]) 
+          if st.session_state.answers[st.session_state.slide] else 0,
     key=f"radio_{st.session_state.slide}"
 )
 
-# Simpan jawaban user
-st.session_state.answers[st.session_state.slide] = selected
+st.session_state.answers[st.session_state.slide] = selected_option
 
-# Navigasi Slide
 col1, col2 = st.columns(2)
 
 with col1:
     if st.session_state.slide > 0:
-        st.button("⬅ Previous", on_click=previous_slide)
+        st.button("⬅ Sebelumnya", on_click=previous_slide)
 
 with col2:
     if st.session_state.slide < len(questions) - 1:
-        st.button("Next ➡", on_click=next_slide)
+        st.button("Lanjut ➡", on_click=next_slide)
     else:
-        st.button("Finish Quiz 🎉", on_click=lambda: st.session_state.update({"slide": len(questions)}))
+        st.button("Selesai 🎉", on_click=lambda: st.session_state.update({"slide": len(questions)}))
+
+st.markdown("</div>", unsafe_allow_html=True)
