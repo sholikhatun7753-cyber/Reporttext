@@ -1,190 +1,136 @@
 import streamlit as st
 
-st.set_page_config(page_title="Quiz Report Text", layout="centered")
+# --- PAGE CONFIG ---
+st.set_page_config(page_title="Fried Rice Report Text Quiz", layout="centered")
 
-# ======== CUSTOM STYLE (WARNA MENARIK) ==========
-page_bg = """
-<style>
+# --- CUSTOM CSS FOR COLORS & SLIDE FEEL ---
+st.markdown(
+    """
+    <style>
     body {
-        background: linear-gradient(135deg, #8EC5FC 0%, #E0C3FC 100%) !important;
+        background-color: #FFF8E7;
     }
-    .quiz-box {
-        background: white;
-        padding: 25px;
+    .main {
+        background-color: #FFFFFF;
+        padding: 20px;
         border-radius: 15px;
-        box-shadow: 0px 4px 18px rgba(0,0,0,0.15);
-        margin-top: 20px;
+        box-shadow: 0 0 15px rgba(0,0,0,0.2);
     }
-    .stButton>button {
-        background-color: #6C5CE7;
-        color: white;
-        border-radius: 10px;
-        padding: 10px 20px;
-        font-size: 16px;
-        border: none;
-        transition: 0.3s;
+    .title {
+        color: #D35400;
+        font-size: 32px;
+        font-weight: bold;
+        text-align: center;
     }
-    .stButton>button:hover {
-        background-color: #4B4AE1;
-        transform: scale(1.05);
-        cursor: pointer;
+    .subtitle {
+        color: #A04000;
+        font-size: 20px;
+        text-align: center;
     }
-</style>
-"""
-st.markdown(page_bg, unsafe_allow_html=True)
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
-# ======== DATA SOAL ==========
+# --- SESSION STATE ---
+if "page" not in st.session_state:
+    st.session_state.page = 0
+if "score" not in st.session_state:
+    st.session_state.score = 0
+
+# --- QUESTIONS ---
 questions = [
     {
-        "question": "1. What is the main idea of the second paragraph?",
+        "text": "1. What is the main idea of the second paragraph?",
         "options": [
-            "A. Fried Rice is a truly delicious",
+            "A. Fried Rice is a truly delicious meal",
             "B. Fried Rice is a truly complete meal",
-            "C. Fried Rice is a truly nusantara food",
-            "D. Fried Rice is a truly best choice"
+            "C. Fried Rice is a truly Nusantara food",
+            "D. Fried Rice is the best choice",
         ],
-        "answer": "B"
+        "answer": 1,
     },
     {
-        "question": "2. The word 'advantages' in paragraph 3 has the closest meaning to…",
-        "options": [
-            "A. impact",
-            "B. purpose",
-            "C. beneficial",
-            "D. loss"
-        ],
-        "answer": "C"
+        "text": "2. The word 'advantages' (paragraph 3) has the closest meaning to...",
+        "options": ["A. profits", "B. difficulties", "C. stories", "D. ingredients"],
+        "answer": 0,
     },
     {
-        "question": "3. What topping can be added on fried rice?",
-        "options": [
-            "A. fries",
-            "B. coco chip",
-            "C. butter",
-            "D. vegetables, scrambled eggs, shredded chicken"
-        ],
-        "answer": "D"
+        "text": "3. What is Fried Rice commonly served with?",
+        "options": ["A. ice cream", "B. vegetables", "C. cereal", "D. bread"],
+        "answer": 1,
     },
     {
-        "question": "4. What is the purpose of the text?",
+        "text": "4. What is the purpose of the text?",
         "options": [
             "A. to describe about fried rice",
             "B. to describe about my breakfast menu",
             "C. to describe my favourite menu",
-            "D. to describe about food"
+            "D. to describe about food",
         ],
-        "answer": "A"
+        "answer": 0,
     },
     {
-        "question": "5. What topping can be added on fried rice?",
+        "text": "5. What topping can be added on fried rice?",
         "options": [
             "A. fries",
             "B. coco chip",
             "C. butter",
-            "D. vegetables, scrambled eggs, shredded chicken"
+            "D. vegetables, scrambled eggs, shredded chicken",
         ],
-        "answer": "D"
-    }
+        "answer": 3,
+    },
 ]
 
-# ======== STATE ==========
-if "slide" not in st.session_state:
-    st.session_state.slide = -1   # mulai dari form identitas
+# --- TEXT STORY PAGE (PAGE 0) ---
+if st.session_state.page == 0:
+    st.markdown('<div class="title">THE WONDERFUL OF BREAKFAST "FRIED RICE"</div>', unsafe_allow_html=True)
+    st.write("### Student Identity")
+    name = st.text_input("Name:")
+    class_name = st.text_input("Class:")
 
-if "answers" not in st.session_state:
-    st.session_state.answers = [""] * len(questions)
+    st.write(
+        """
+        **Fried Rice, or Nasi Goreng**, is an unmatched and deeply beloved breakfast dish in Indonesia, 
+        promising a satisfying start to the day. When served, it appears like a culinary artwork itself—a beautiful mosaic of vibrant colors. 
+        The base of the rice, perfectly stir-fried, gleams with an appetizing golden-brown hue.
+        
+        Despite its simple appearance, a nutritionally balanced plate of Fried Rice is a truly complete meal. 
+        The rice provides abundant carbohydrates, protein from scrambled eggs or chicken, and vitamins from vegetables.
+        
+        Choosing Fried Rice for breakfast offers strategic advantages, especially for students and employees who need stable energy and focus.
+        """
+    )
 
-if "nama" not in st.session_state:
-    st.session_state.nama = ""
+    if st.button("Start Quiz"):
+        if name and class_name:
+            st.session_state.name = name
+            st.session_state.class_name = class_name
+            st.session_state.page = 1
+        else:
+            st.warning("Please fill in your name and class first!")
 
-if "kelas" not in st.session_state:
-    st.session_state.kelas = ""
+# --- QUESTION PAGES ---
+elif 1 <= st.session_state.page <= len(questions):
+    q_index = st.session_state.page - 1
+    q = questions[q_index]
 
-# ======== FUNGSI ==========
-def start_quiz():
-    if st.session_state.nama and st.session_state.kelas:
-        st.session_state.slide = 0
+    st.markdown(f"### {q['text']}")
+    choice = st.radio("Choose your answer:", q["options"], key=f"q{q_index}")
 
-def next_slide():
-    if st.session_state.slide < len(questions) - 1:
-        st.session_state.slide += 1
+    if st.button("Next"):
+        selected = q["options"].index(choice)
+        if selected == q["answer"]:
+            st.session_state.score += 20
+        st.session_state.page += 1
 
-def previous_slide():
-    if st.session_state.slide > 0:
-        st.session_state.slide -= 1
+# --- RESULTS PAGE ---
+elif st.session_state.page == len(questions) + 1:
+    st.markdown('<div class="title">RESULT</div>', unsafe_allow_html=True)
+    st.write(f"### Name: **{st.session_state.name}**")
+    st.write(f"### Class: **{st.session_state.class_name}**")
+    st.write(f"## Your Score: **{st.session_state.score} / 100** 🎉")
 
-def restart_quiz():
-    st.session_state.slide = -1
-    st.session_state.answers = [""] * len(questions)
-    st.session_state.nama = ""
-    st.session_state.kelas = ""
-
-# ======== FORM IDENTITAS SISWA ==========
-if st.session_state.slide == -1:
-    st.markdown("<div class='quiz-box'>", unsafe_allow_html=True)
-    st.title("📝 Identitas Siswa")
-
-    st.session_state.nama = st.text_input("Nama Lengkap")
-    st.session_state.kelas = st.text_input("Kelas")
-
-    if st.button("Mulai Quiz ▶", on_click=start_quiz):
-        pass
-
-    st.markdown("</div>", unsafe_allow_html=True)
-    st.stop()
-
-# ======== SLIDE HASIL ==========
-if st.session_state.slide == len(questions):
-    st.markdown("<div class='quiz-box'>", unsafe_allow_html=True)
-    st.title("🎉 Quiz Completed!")
-    st.subheader("Hasil Quiz")
-
-    score = 0
-    for i, q in enumerate(questions):
-        if st.session_state.answers[i] == q["answer"]:
-            score += 100 // len(questions)
-
-    st.write(f"### Nama: **{st.session_state.nama}**")
-    st.write(f"### Kelas: **{st.session_state.kelas}**")
-    st.write(f"### ⭐ Skor kamu: **{score} / 100**")
-
-    st.write("---")
-    st.subheader("Kunci Jawaban")
-    for i, q in enumerate(questions):
-        st.write(f"**Soal {i+1}:** Kunci = {q['answer']} | Jawabanmu = {st.session_state.answers[i]}")
-
-    st.button("🔄 Mulai Lagi", on_click=restart_quiz)
-    st.markdown("</div>", unsafe_allow_html=True)
-    st.stop()
-
-# ======== TAMPILAN SLIDE SOAL ==========
-q = questions[st.session_state.slide]
-
-st.markdown("<div class='quiz-box'>", unsafe_allow_html=True)
-st.title("📚 Report Text Quiz")
-st.write(f"### Slide {st.session_state.slide + 1} dari {len(questions)}")
-st.write(f"**{q['question']}**")
-
-selected_option = st.radio(
-    "Pilih jawaban:",
-    options=["A", "B", "C", "D"],
-    index=["A", "B", "C", "D"].index(st.session_state.answers[st.session_state.slide]) 
-          if st.session_state.answers[st.session_state.slide] else 0,
-    key=f"radio_{st.session_state.slide}"
-)
-
-st.session_state.answers[st.session_state.slide] = selected_option
-
-col1, col2 = st.columns(2)
-
-with col1:
-    if st.session_state.slide > 0:
-        st.button("⬅ Sebelumnya", on_click=previous_slide)
-
-with col2:
-    if st.session_state.slide < len(questions) - 1:
-        st.button("Lanjut ➡", on_click=next_slide)
-    else:
-        st.button("Selesai 🎉", on_click=lambda: st.session_state.update({"slide": len(questions)}))
-
-st.markdown("</div>", unsafe_allow_html=True)
+    if st.button("Restart"):
+        st.session_state.page = 0
+        st.session_state.score = 0
