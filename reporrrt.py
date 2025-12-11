@@ -3,7 +3,7 @@ import base64
 
 st.set_page_config(page_title="Quiz Slide Show", layout="centered")
 
-# --- Jawaban dienkripsi (tidak terlihat jelas) ---
+# --- Jawaban dienkripsi (disembunyikan) ---
 encoded_keys = [
     base64.b64encode("B".encode()).decode(), 
     base64.b64encode("C".encode()).decode(),
@@ -44,23 +44,50 @@ questions = [
     }
 ]
 
-# --- State untuk slide ---
+# --- Session State ---
 if "slide" not in st.session_state:
-    st.session_state.slide = 0
+    st.session_state.slide = -1     # -1 untuk halaman identitas
 if "score" not in st.session_state:
     st.session_state.score = 0
 if "answered" not in st.session_state:
     st.session_state.answered = False
+if "nama" not in st.session_state:
+    st.session_state.nama = ""
+if "kelas" not in st.session_state:
+    st.session_state.kelas = ""
 
-# --- UI Judul ---
-st.title("📘 Report Text Quiz – Slide Show Mode")
 
-# --- Menampilkan pertanyaan sesuai slide ---
+# --- Halaman IDENTITAS ---
+if st.session_state.slide == -1:
+    st.title("📘 Report Text Quiz – Student Identity")
+
+    st.session_state.nama = st.text_input("Nama:")
+    st.session_state.kelas = st.text_input("Kelas:")
+
+    if st.button("Start Quiz"):
+        if st.session_state.nama == "" or st.session_state.kelas == "":
+            st.warning("⚠ Silakan isi nama dan kelas terlebih dahulu.")
+        else:
+            st.session_state.slide = 0
+    st.stop()
+
+
+# --- Halaman Soal ---
 i = st.session_state.slide
 q = questions[i]
+
+st.title("📘 Report Text Quiz – Slide Show")
+st.write(f"👤 **Nama:** {st.session_state.nama}")
+st.write(f"🏫 **Kelas:** {st.session_state.kelas}")
+st.markdown("---")
+
 st.subheader(q["question"])
 
-selected = st.radio("Choose one answer:", list(q["options"].keys()), format_func=lambda x: f"{x}. {q['options'][x]}")
+selected = st.radio(
+    "Pilih jawaban:",
+    list(q["options"].keys()),
+    format_func=lambda x: f"{x}. {q['options'][x]}"
+)
 
 # --- Tombol Cek Jawaban ---
 if st.button("Check Answer"):
@@ -73,16 +100,18 @@ if st.button("Check Answer"):
             st.error("✘ Wrong answer!")
         st.session_state.answered = True
 
-# --- Tombol Next Slide ---
+# --- Tombol Next ---
 if st.session_state.answered:
     if st.button("Next"):
         st.session_state.slide += 1
         st.session_state.answered = False
 
-# --- Jika selesai ---
+# --- Selesai ---
 if st.session_state.slide >= len(questions):
     st.balloons()
     st.title("🎉 Quiz Completed!")
-    st.subheader(f"Your Final Score: **{st.session_state.score} / {len(questions)*20}**")
+    st.subheader(f"👤 Nama: **{st.session_state.nama}**")
+    st.subheader(f"🏫 Kelas: **{st.session_state.kelas}**")
+    st.markdown("---")
+    st.subheader(f"🏆 Final Score: **{st.session_state.score} / {len(questions)*20}**")
     st.stop()
-
